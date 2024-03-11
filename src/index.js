@@ -224,7 +224,6 @@ navigator.mediaDevices.getUserMedia({
         // Start the recognition again if TTS is not active
         setTimeout(()=>{
             if (!isTTSActive) {
-                recognition.stop();
 
                 recognition.start();
             }
