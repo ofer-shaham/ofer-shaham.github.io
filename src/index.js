@@ -120,19 +120,19 @@ function analyzeText(speechResult) {
     }
     return [src, trg]
 }
-function addGrammer(recognition) {
-    const grammar = "#JSGF V1.0; grammar colors; public <color> = aqua | azure | beige | bisque | black | blue | brown | chocolate | coral | crimson | cyan | fuchsia | ghostwhite | gold | goldenrod | gray | green | indigo | ivory | khaki | lavender | lime | linen | magenta | maroon | moccasin | navy | olive | orange | orchid | peru | pink | plum | purple | red | salmon | sienna | silver | snow | tan | teal | thistle | tomato | turquoise | violet | white | yellow ;";
-    const speechRecognitionList = new webkitSpeechGrammarList();
-    speechRecognitionList.addFromString(grammar, 1);
-    return  speechRecognitionList;
- }
+// function addGrammer(recognition) {
+//     const grammar = "#JSGF V1.0; grammar colors; public <color> = aqua | azure | beige | bisque | black | blue | brown | chocolate | coral | crimson | cyan | fuchsia | ghostwhite | gold | goldenrod | gray | green | indigo | ivory | khaki | lavender | lime | linen | magenta | maroon | moccasin | navy | olive | orange | orchid | peru | pink | plum | purple | red | salmon | sienna | silver | snow | tan | teal | thistle | tomato | turquoise | violet | white | yellow ;";
+//     const speechRecognitionList = new webkitSpeechGrammarList();
+//     speechRecognitionList.addFromString(grammar, 1);
+//     return  speechRecognitionList;
+//  }
 navigator.mediaDevices.getUserMedia({
     audio: true
 }).then(function(stream) {
     // Create a new SpeechRecognition object
     let recognition = new webkitSpeechRecognition();
-    if (webkitSpeechGrammarList)
-        recognition.grammar = addGrammer()
+    // if (webkitSpeechGrammarList)
+    //     recognition.grammar = addGrammer()
     // Set the continuous mode to true
     recognition.continuous = true;
 
