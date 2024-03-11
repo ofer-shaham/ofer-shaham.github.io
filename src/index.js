@@ -4,7 +4,6 @@ import { targetElements, defaultProps } from "./data/scrollRevealConfig";
 
 initScrollReveal(targetElements, defaultProps);
 initTiltEffect();
-
 function mapLanguageNameToCode(languageName) {
     const languageMap = {
         english: 'en-US',
@@ -28,6 +27,10 @@ function mapLanguageNameToCode(languageName) {
 }
 
 async function translateText(source, target, text) {
+    console.log('translateText')
+
+    //     const sourceText = 'בוקר טוב';
+    // const targetLanguage = 'fr'; // French
     const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${source}&tl=${target}&dt=t&q=${encodeURI(text)}`
 
     // const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLanguage}&dt=t&q=${encodeURIComponent(sourceText)}`;
@@ -84,6 +87,8 @@ function analyzeText(speechResult) {
     else if (speechResult.toLowerCase().includes("show commands")) {
         console.log("translate from X to Y")
         console.log("change language to X")
+        console.log('speak english')
+
     }// 
     else if (speechResult.toLowerCase().includes("translate from")) {
         [translateFrom,translateTo] = setTranslationLanguage(speechResult);
@@ -115,13 +120,20 @@ function analyzeText(speechResult) {
     }
     return [src, trg]
 }
-
+function addGrammer(recognition) {
+    const grammar = "#JSGF V1.0; grammar colors; public <color> = aqua | azure | beige | bisque | black | blue | brown | chocolate | coral | crimson | cyan | fuchsia | ghostwhite | gold | goldenrod | gray | green | indigo | ivory | khaki | lavender | lime | linen | magenta | maroon | moccasin | navy | olive | orange | orchid | peru | pink | plum | purple | red | salmon | sienna | silver | snow | tan | teal | thistle | tomato | turquoise | violet | white | yellow ;";
+    const speechRecognitionList = new SpeechGrammarList();
+    speechRecognitionList.addFromString(grammar, 1);
+    recognition.grammars = speechRecognitionList;
+    return recognition
+}
 navigator.mediaDevices.getUserMedia({
     audio: true
 }).then(function(stream) {
     // Create a new SpeechRecognition object
     let recognition = new webkitSpeechRecognition();
-
+    if (speechRecognitionList)
+        recognition = addGrammer()
     // Set the continuous mode to true
     recognition.continuous = true;
 
@@ -182,6 +194,13 @@ navigator.mediaDevices.getUserMedia({
             utterance = new SpeechSynthesisUtterance(speechResult);
             utterance.lang = initialLanguage;
 
+            // utterance.lang = translateFrom;
+            // console.log('utterance lang', {
+            //     lang: translateFrom
+            // }, {
+            //     speechResult
+            // })
+
         }
         if (utterance) {
             // Set the flag to indicate TTS is active
@@ -193,6 +212,7 @@ navigator.mediaDevices.getUserMedia({
                 // Stop the recognition when TTS starts
                 recognition.stop();
             }
+            ;
 
             // Event handler for when TTS ends
             utterance.onend = function() {
@@ -222,20 +242,25 @@ navigator.mediaDevices.getUserMedia({
         console.log("Recognition ended");
 
         // Start the recognition again if TTS is not active
-        setTimeout(()=>{
-            if (!isTTSActive) {
+        // setTimeout(()=>{
+        //     if (!isTTSActive) {
+        //         // recognition.stop();
 
-                recognition.start();
-            }
-        }
-        , 1000)
+        //         recognition.start();
+        //     }
+        // }
+        // , 1000)
+
+    }
+    recognition.onstart = function() {
+        console.log("Recognition started");
 
     }
 
-    setInterval(()=>{
-        console.info(recognition)
-    }
-    , 2000)
+    // setInterval(()=>{
+    //     console.info(recognition)
+    // }
+    // , 2000)
 
 }).catch(function(error) {
     console.log("Error accessing microphone: " + error);
