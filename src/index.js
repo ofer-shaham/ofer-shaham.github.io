@@ -122,18 +122,17 @@ function analyzeText(speechResult) {
 }
 function addGrammer(recognition) {
     const grammar = "#JSGF V1.0; grammar colors; public <color> = aqua | azure | beige | bisque | black | blue | brown | chocolate | coral | crimson | cyan | fuchsia | ghostwhite | gold | goldenrod | gray | green | indigo | ivory | khaki | lavender | lime | linen | magenta | maroon | moccasin | navy | olive | orange | orchid | peru | pink | plum | purple | red | salmon | sienna | silver | snow | tan | teal | thistle | tomato | turquoise | violet | white | yellow ;";
-    const speechRecognitionList = new SpeechGrammarList();
+    const speechRecognitionList = new webkitSpeechGrammarList();
     speechRecognitionList.addFromString(grammar, 1);
-    recognition.grammars = speechRecognitionList;
-    return recognition
-}
+    return  speechRecognitionList;
+ }
 navigator.mediaDevices.getUserMedia({
     audio: true
 }).then(function(stream) {
     // Create a new SpeechRecognition object
     let recognition = new webkitSpeechRecognition();
-    if (speechRecognitionList)
-        recognition = addGrammer()
+    if (webkitSpeechGrammarList)
+        recognition.grammar = addGrammer()
     // Set the continuous mode to true
     recognition.continuous = true;
 
@@ -225,6 +224,47 @@ navigator.mediaDevices.getUserMedia({
             }
             // Speak the utterance
             speechSynthesis.speak(utterance);
+
+        }
+
+    }
+    ;
+
+    // Event handler for errors
+    recognition.onerror = function(event) {
+        console.log("Error occurred: " + event.error);
+    }
+    ;
+
+    // Event handler for when the recognition ends
+    recognition.onend = function() {
+        console.log("Recognition ended");
+
+        // Start the recognition again if TTS is not active
+        // setTimeout(()=>{
+        //     if (!isTTSActive) {
+        //         // recognition.stop();
+
+        //         recognition.start();
+        //     }
+        // }
+        // , 1000)
+
+    }
+    recognition.onstart = function() {
+        console.log("Recognition started");
+
+    }
+
+    // setInterval(()=>{
+    //     console.info(recognition)
+    // }
+    // , 2000)
+
+}).catch(function(error) {
+    console.log("Error accessing microphone: " + error);
+});
+
 
         }
 
