@@ -1,4 +1,3 @@
-
 function mapLanguageNameToCode(languageName) {
     const languageMap = {
         english: 'en-US',
@@ -219,47 +218,6 @@ navigator.mediaDevices.getUserMedia({
             }
             // Speak the utterance
             speechSynthesis.speak(utterance);
-
-        }
-
-    }
-    ;
-
-    // Event handler for errors
-    recognition.onerror = function(event) {
-        console.log("Error occurred: " + event.error);
-    }
-    ;
-
-    // Event handler for when the recognition ends
-    recognition.onend = function() {
-        console.log("Recognition ended");
-
-        // Start the recognition again if TTS is not active
-        // setTimeout(()=>{
-        //     if (!isTTSActive) {
-        //         // recognition.stop();
-
-        //         recognition.start();
-        //     }
-        // }
-        // , 1000)
-
-    }
-    recognition.onstart = function() {
-        console.log("Recognition started");
-
-    }
-
-    // setInterval(()=>{
-    //     console.info(recognition)
-    // }
-    // , 2000)
-
-}).catch(function(error) {
-    console.log("Error accessing microphone: " + error);
-});
-
 
         }
 
