@@ -235,14 +235,13 @@ navigator.mediaDevices.getUserMedia({
         console.log("Recognition ended");
 
         // Start the recognition again if TTS is not active
-        // setTimeout(()=>{
-        //     if (!isTTSActive) {
-        //         // recognition.stop();
-
-        //         recognition.start();
-        //     }
-        // }
-        // , 1000)
+        setTimeout(()=>{
+            if (!isTTSActive) {
+ 
+                recognition.start();
+            }
+        }
+        , 1000)
 
     }
     recognition.onstart = function() {
