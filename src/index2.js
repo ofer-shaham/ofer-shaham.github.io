@@ -128,7 +128,7 @@ navigator.mediaDevices.getUserMedia({
     // if (webkitSpeechGrammarList)
     //     recognition.grammar = addGrammer()
     // Set the continuous mode to true
-    recognition.continuous = true;
+    recognition.continuous = false;
 
     // Set the default language
     let initialLanguage = 'en-US';
