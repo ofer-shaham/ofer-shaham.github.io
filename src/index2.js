@@ -120,17 +120,17 @@ function analyzeText(speechResult) {
 //     speechRecognitionList.addFromString(grammar, 1);
 //     return  speechRecognitionList;
 //  }
+
+const SpeechRecognition = SpeechRecognition || webkitSpeechRecognition
+const SpeechGrammarList = SpeechGrammarList || window.webkitSpeechGrammarList
+const SpeechRecognitionEvent = SpeechRecognitionEvent || webkitSpeechRecognitionEvent
+const recognition = new SpeechRecognition();
+
 function option1(){
-    navigator.mediaDevices.getUserMedia({
-    audio: true
-}).then(function(stream) {
-    var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition
-var SpeechGrammarList = SpeechGrammarList || window.webkitSpeechGrammarList
-var SpeechRecognitionEvent = SpeechRecognitionEvent || webkitSpeechRecognitionEvent
+
 
 var colors = [ 'aqua' , 'azure' , 'beige', 'bisque', 'black', 'blue', 'brown', 'chocolate', 'coral', 'crimson', 'cyan', 'fuchsia', 'ghostwhite', 'gold', 'goldenrod', 'gray', 'green', 'indigo', 'ivory', 'khaki', 'lavender', 'lime', 'linen', 'magenta', 'maroon', 'moccasin', 'navy', 'olive', 'orange', 'orchid', 'peru', 'pink', 'plum', 'purple', 'red', 'salmon', 'sienna', 'silver', 'snow', 'tan', 'teal', 'thistle', 'tomato', 'turquoise', 'violet', 'white', 'yellow'];
 
-var recognition = new SpeechRecognition();
 if (SpeechGrammarList) {
   // SpeechGrammarList is not currently available in Safari, and does not have any effect in any other browser.
   // This code is provided as a demonstration of possible capability. You may choose not to use it.
@@ -178,21 +178,23 @@ console.log(
 }
       recognition.start();
 
-})
         }
 function option2(){
-    
+    // let recognition = new webkitSpeechRecognition();
 
 // navigator.mediaDevices.getUserMedia({
 //     audio: true
 // }).then(function(stream) {
     // Create a new SpeechRecognition object
-    let recognition = new webkitSpeechRecognition();
+    
     // if (webkitSpeechGrammarList)
     //     recognition.grammar = addGrammer()
     // Set the continuous mode to true
-    recognition.continuous = false;
-
+    
+recognition.continuous = false;
+recognition.lang = 'en-US';
+recognition.interimResults = false;
+recognition.maxAlternatives = 1;
     // Set the default language
     let initialLanguage = 'en-US';
     let utterance = null
@@ -322,4 +324,9 @@ function option2(){
 // });
 }
 
+// option2()
+    navigator.mediaDevices.getUserMedia({
+    audio: true
+}).then(function(stream) {
 option2()
+})
