@@ -1,4 +1,5 @@
 function mapLanguageNameToCode(languageName) {
+    
     const languageMap = {
         english: 'en-US',
         spanish: 'es-ES',
