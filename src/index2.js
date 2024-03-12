@@ -173,6 +173,8 @@ console.log(
   'Error occurred in recognition: ' + event.error,error
 ) 
 }
+      recognition.start();
+
 }
 function option2(){
     
