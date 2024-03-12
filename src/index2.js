@@ -121,10 +121,7 @@ function analyzeText(speechResult) {
 //     return  speechRecognitionList;
 //  }
 
-const SpeechRecognition = SpeechRecognition || webkitSpeechRecognition
-const SpeechGrammarList = SpeechGrammarList || window.webkitSpeechGrammarList
-const SpeechRecognitionEvent = SpeechRecognitionEvent || webkitSpeechRecognitionEvent
-const recognition = new SpeechRecognition();
+
 
 function option1(){
 
@@ -328,5 +325,9 @@ recognition.maxAlternatives = 1;
     navigator.mediaDevices.getUserMedia({
     audio: true
 }).then(function(stream) {
+        const SpeechRecognition = SpeechRecognition || webkitSpeechRecognition
+const SpeechGrammarList = SpeechGrammarList || window.webkitSpeechGrammarList
+const SpeechRecognitionEvent = SpeechRecognitionEvent || webkitSpeechRecognitionEvent
+const recognition = new SpeechRecognition();
 option2()
 })
