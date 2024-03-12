@@ -325,9 +325,9 @@ recognition.maxAlternatives = 1;
     navigator.mediaDevices.getUserMedia({
     audio: true
 }).then(function(stream) {
-        const SpeechRecognition = SpeechRecognition || webkitSpeechRecognition
-const SpeechGrammarList = SpeechGrammarList || window.webkitSpeechGrammarList
-const SpeechRecognitionEvent = SpeechRecognitionEvent || webkitSpeechRecognitionEvent
+        const SpeechRecognition =  webkitSpeechRecognition
+const SpeechGrammarList =   window.webkitSpeechGrammarList
+const SpeechRecognitionEvent =   webkitSpeechRecognitionEvent
 const recognition = new SpeechRecognition();
 option2()
 })
