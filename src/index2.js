@@ -192,7 +192,7 @@ const recognition = new SpeechRecognition();
     //     recognition.grammar = addGrammer()
     // Set the continuous mode to true
     
-recognition.continuous = false;
+recognition.continuous = true;
 recognition.lang = 'en-US';
 recognition.interimResults = false;
 recognition.maxAlternatives = 1;
@@ -301,13 +301,13 @@ recognition.maxAlternatives = 1;
         console.log("Recognition ended");
 
         // Start the recognition again if TTS is not active
-        setTimeout(()=>{
-            if (!isTTSActive) {
+        // setTimeout(()=>{
+        //     if (!isTTSActive) {
  
-                recognition.start();
-            }
-        }
-        , 1000)
+        //         recognition.start();
+        //     }
+        // }
+        // , 1000)
 
     }
     recognition.onstart = function() {
