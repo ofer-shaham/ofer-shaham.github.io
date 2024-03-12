@@ -178,7 +178,7 @@ console.log(
 }
       recognition.start();
 
-}
+})
         }
 function option2(){
     
