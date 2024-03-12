@@ -170,7 +170,7 @@ console.log(
 
 recognition.onerror = function(event) {
 console.log(
-  'Error occurred in recognition: ' + event.error;  
+  'Error occurred in recognition: ' + event.error,error
 ) 
 }
 }
