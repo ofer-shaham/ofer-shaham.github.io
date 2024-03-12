@@ -121,6 +121,9 @@ function analyzeText(speechResult) {
 //     return  speechRecognitionList;
 //  }
 function option1(){
+    navigator.mediaDevices.getUserMedia({
+    audio: true
+}).then(function(stream) {
     var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition
 var SpeechGrammarList = SpeechGrammarList || window.webkitSpeechGrammarList
 var SpeechRecognitionEvent = SpeechRecognitionEvent || webkitSpeechRecognitionEvent
@@ -176,6 +179,7 @@ console.log(
       recognition.start();
 
 }
+        }
 function option2(){
     
 
