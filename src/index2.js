@@ -183,9 +183,9 @@ console.log(
 function option2(){
     
 
-navigator.mediaDevices.getUserMedia({
-    audio: true
-}).then(function(stream) {
+// navigator.mediaDevices.getUserMedia({
+//     audio: true
+// }).then(function(stream) {
     // Create a new SpeechRecognition object
     let recognition = new webkitSpeechRecognition();
     // if (webkitSpeechGrammarList)
@@ -317,9 +317,9 @@ navigator.mediaDevices.getUserMedia({
     // }
     // , 2000)
 
-}).catch(function(error) {
-    console.log("Error accessing microphone: " + error);
-});
+// }).catch(function(error) {
+//     console.log("Error accessing microphone: " + error);
+// });
 }
 
-option1()
+option2()
