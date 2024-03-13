@@ -86,7 +86,7 @@ function analyzeText(speechResult) {
     } catch (e) {
         console.error(e.message);
     }
-
+    console.log([src, trg])
     return [src, trg];
 }
 
@@ -96,11 +96,11 @@ function option1() {
     const SpeechRecognitionEvent = webkitSpeechRecognitionEvent;
     const recognition = new SpeechRecognition();
 
-    var colors = ['aqua', 'azure', 'beige', 'bisque', 'black', 'blue', 'brown', 'chocolate', 'coral', 'crimson', 'cyan', 'fuchsia', 'ghostwhite', 'gold', 'goldenrod', 'gray', 'green', 'indigo', 'ivory', 'khaki', 'lavender', 'lime', 'linen', 'magenta', 'maroon', 'moccasin', 'navy', 'olive', 'orange', 'orchid', 'peru', 'pink', 'plum', 'purple', 'red', 'salmon', 'sienna', 'silver', 'snow', 'tan', 'teal', 'thistle', 'tomato', 'turquoise', 'violet', 'white', 'yellow'];
+    const colors = ['aqua', 'azure', 'beige', 'bisque', 'black', 'blue', 'brown', 'chocolate', 'coral', 'crimson', 'cyan', 'fuchsia', 'ghostwhite', 'gold', 'goldenrod', 'gray', 'green', 'indigo', 'ivory', 'khaki', 'lavender', 'lime', 'linen', 'magenta', 'maroon', 'moccasin', 'navy', 'olive', 'orange', 'orchid', 'peru', 'pink', 'plum', 'purple', 'red', 'salmon', 'sienna', 'silver', 'snow', 'tan', 'teal', 'thistle', 'tomato', 'turquoise', 'violet', 'white', 'yellow'];
 
     if (SpeechGrammarList) {
-        var speechRecognitionList = new SpeechGrammarList();
-        var grammar = '#JSGF V1.0; grammar colors; public <color> = ' + colors.join(' | ') + ' ;'
+        const speechRecognitionList = new SpeechGrammarList();
+        const grammar = '#JSGF V1.0; grammar colors; public <color> = ' + colors.join(' | ') + ' ;'
         speechRecognitionList.addFromString(grammar, 1);
         recognition.grammars = speechRecognitionList;
     }
@@ -110,20 +110,25 @@ function option1() {
 
     let initialLanguage = 'en-US';
     let utterance = null;
-    let [translateFrom, translateTo] = ['', ''];
+    let[translateFrom,translateTo] = ['', ''];
     let isTTSActive = false;
+    let isSTTactive = false;
 
     recognition.lang = initialLanguage;
     recognition.start();
 
     recognition.onresult = async function(event) {
-        console.log({ event });
+        console.log({
+            event
+        });
 
         const speechResult = event.results[event.results.length - 1][0].transcript;
         console.log('recognition: speechResult', speechResult);
 
-        const [newTranslateFrom, newTranslateTo] = analyzeText(speechResult);
+        //extract command from speech - we may want to translate or just to change source language
+        const [newTranslateFrom,newTranslateTo] = analyzeText(speechResult);
 
+        //prefer translation if exists
         if (newTranslateTo) {
             translateTo = newTranslateTo;
         }
@@ -132,41 +137,84 @@ function option1() {
         }
 
         if (translateTo) {
+            //speak out the translation
             const translationResult = await translateText(translateFrom, translateTo, speechResult);
 
             utterance = new SpeechSynthesisUtterance(translationResult);
             utterance.lang = translateTo;
-            recognition.stop();
-
             recognition.lang = translateFrom;
-            console.log('update utterance language', { language: translateTo, translationResult });
+            console.log('update source and target language', {
+                language: translateTo,
+                translationResult
+            });
         } else if (translateFrom) {
-            console.log('update recognition language', { language: translateFrom });
-            recognition.stop();
+            //change spoken language
+            console.log('update source language', {
+                language: translateFrom
+            });
 
             recognition.lang = translateFrom;
             utterance = new SpeechSynthesisUtterance(speechResult);
             utterance.lang = translateFrom;
         } else {
+            console.log('initial source language')
             utterance = new SpeechSynthesisUtterance(speechResult);
             utterance.lang = initialLanguage;
         }
 
         if (utterance) {
+            recognition.stop();
+            //listen only whenever tts is off
             utterance.onstart = function() {
                 isTTSActive = true;
-                recognition.stop();
-            };
+
+            }
+            ;
+            utterance.onspeechend = utterance.onend = function() {
+                ;utterance = null;
+                isTTSactive = false;
+                console.log({
+                    isTTSactive
+                })
+                restartListening();
+
+            }
+            ;
 
             recognition.onend = recognition.onspeechend = recognition.onerror = function() {
-                setTimeout(() => {
-                    recognition.start();
-                }, 1000);
-            };
+                isSTTactive = false;
+                console.log({
+                    isSTTactive
+                })
+                restartListening();
 
-            recognition.start();
+            }
+            ;
+            recognition.onstart = ()=>{
+                isSTTactive = true;
+            }
+
+            //speak out
+            speechSynthesis.speak(utterance)
         }
-    };
+    }
+    ;
+    async function restartListening() {
+      //  setTimeout(()=>{
+            if (!isTTSActive && !isSTTactive) {
+                console.log('stt,tts are not active');
+                console.log('start listening');
+                ;recognition.start();
+            }
+            console.log('status', {
+                isSTTactive
+            }, {
+                isTTSActive
+            })
+
+        //}
+        //, 1000)
+    }
 }
 
 option1();
