@@ -266,7 +266,9 @@ function option1() {
             }
 
         }
-    })
+    }).catch((err) => {
+      console.error(`The following getUserMedia error occurred: ${err}`);
+    });
 }
 
 option1();
