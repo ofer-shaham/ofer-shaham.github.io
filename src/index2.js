@@ -1,3 +1,4 @@
+let counter = 0
 function mapLanguageNameToCode(languageName) {
     const languageMap = {
         english: 'en-US',
@@ -53,6 +54,7 @@ function setTranslationLanguage(userInput) {
 function analyzeText(speechResult) {
     let translateFrom = '';
     let translateTo = '';
+
     let src = '';
     let trg = '';
 
@@ -91,31 +93,34 @@ function analyzeText(speechResult) {
 }
 
 function option1() {
+    console.log('option1', ++counter)
     const SpeechRecognition = webkitSpeechRecognition;
     const SpeechGrammarList = window.webkitSpeechGrammarList;
     const SpeechRecognitionEvent = webkitSpeechRecognitionEvent;
     const recognition = new SpeechRecognition();
 
-    const colors = ['aqua', 'azure', 'beige', 'bisque', 'black', 'blue', 'brown', 'chocolate', 'coral', 'crimson', 'cyan', 'fuchsia', 'ghostwhite', 'gold', 'goldenrod', 'gray', 'green', 'indigo', 'ivory', 'khaki', 'lavender', 'lime', 'linen', 'magenta', 'maroon', 'moccasin', 'navy', 'olive', 'orange', 'orchid', 'peru', 'pink', 'plum', 'purple', 'red', 'salmon', 'sienna', 'silver', 'snow', 'tan', 'teal', 'thistle', 'tomato', 'turquoise', 'violet', 'white', 'yellow'];
+    // const colors = ['aqua', 'azure', 'beige', 'bisque', 'black', 'blue', 'brown', 'chocolate', 'coral', 'crimson', 'cyan', 'fuchsia', 'ghostwhite', 'gold', 'goldenrod', 'gray', 'green', 'indigo', 'ivory', 'khaki', 'lavender', 'lime', 'linen', 'magenta', 'maroon', 'moccasin', 'navy', 'olive', 'orange', 'orchid', 'peru', 'pink', 'plum', 'purple', 'red', 'salmon', 'sienna', 'silver', 'snow', 'tan', 'teal', 'thistle', 'tomato', 'turquoise', 'violet', 'white', 'yellow'];
 
-    if (SpeechGrammarList) {
-        const speechRecognitionList = new SpeechGrammarList();
-        const grammar = '#JSGF V1.0; grammar colors; public <color> = ' + colors.join(' | ') + ' ;'
-        speechRecognitionList.addFromString(grammar, 1);
-        recognition.grammars = speechRecognitionList;
-    }
-
+    // if (SpeechGrammarList) {
+    //     const speechRecognitionList = new SpeechGrammarList();
+    //     const grammar = '#JSGF V1.0; grammar colors; public <color> = ' + colors.join(' | ') + ' ;'
+    //     speechRecognitionList.addFromString(grammar, 1);
+    //     recognition.grammars = speechRecognitionList;
+    // }
+    recognition.interimResults = false;
     recognition.continuous = false;
     recognition.maxAlternatives = 1;
 
+    // let initialLanguage ='he-IL'//
     let initialLanguage = 'en-US';
+
     let utterance = null;
+
     let[translateFrom,translateTo] = ['', ''];
-    let isTTSActive = false;
-    let isSTTactive = false;
+    let isTtsActive = false;
+    let isSttActive = false;
 
     recognition.lang = initialLanguage;
-    recognition.start();
 
     recognition.onresult = async function(event) {
         console.log({
@@ -162,58 +167,99 @@ function option1() {
             utterance.lang = initialLanguage;
         }
 
-        if (utterance) {
-            recognition.stop();
-            //listen only whenever tts is off
-            utterance.onstart = function() {
-                isTTSActive = true;
+        //listen only whenever tts is off
+        utterance.onstart = function(ev) {
 
-            }
-            ;
-            utterance.onspeechend = utterance.onend = function() {
-                ;utterance = null;
-                isTTSactive = false;
-                console.log({
-                    isTTSactive
-                })
-                restartListening();
-
-            }
-            ;
-
-            recognition.onend = recognition.onspeechend = recognition.onerror = function() {
-                isSTTactive = false;
-                console.log({
-                    isSTTactive
-                })
-                restartListening();
-
-            }
-            ;
-            recognition.onstart = ()=>{
-                isSTTactive = true;
-            }
-
-            //speak out
-            speechSynthesis.speak(utterance)
-        }
-    }
-    ;
-    async function restartListening() {
-      //  setTimeout(()=>{
-            if (!isTTSActive && !isSTTactive) {
-                console.log('stt,tts are not active');
-                console.log('start listening');
-                ;recognition.start();
-            }
-            console.log('status', {
-                isSTTactive
-            }, {
-                isTTSActive
+            isTtsActive = true;
+            console.log('start', {
+                isTtsActive
             })
+            recognition.stop();
 
-        //}
-        //, 1000)
+        }
+        utterance.onmark = function(ev) {
+            console.log('onmark', ev)
+        }
+        ;
+        utterance.onboundary = function(ev) {
+            console.log('onboundary', ev)
+        }
+        ;
+        utterance.onresult = function(ev) {
+            console.log('onresult', ev)
+        }
+
+        utterance.onerror = function(ev) {
+            console.log('onerror', ev)
+        }
+        utterance.onspeechend = function(ev) {
+            setTtsStatus(false)
+
+            console.log('onspeechend', ev)
+        }
+        utterance.onend = function(ev) {
+            setTtsStatus(false)
+            console.log('onend', ev)
+        }
+
+        // Event handler for errors
+        recognition.onerror = function(event) {
+            console.log("Error occurred: " + event.error);
+            setSttStatus(false)
+            restartListening()
+        }
+
+        // Event handler for when the recognition ends
+        recognition.onend = function() {
+            console.log("Recognition ended");
+            setSttStatus(false)
+            // Start the recognition again if TTS is not active
+            restartListening()
+
+        }
+
+        recognition.onstart = ()=>{
+            console.log('onstart recognition')
+
+            isSttActive = true;
+        }
+
+        //speak out
+        speechSynthesis.speak(utterance)
+
+    }
+
+    recognition.start();
+
+    function setSttStatus(value) {
+        // ;utterance = null;
+        isSttActive = value;
+        console.log('setSttStatus', {
+            isTtsActive
+        })
+    }
+    function setTtsStatus(value) {
+        // ;utterance = null;
+        isTtsActive = value;
+        console.log('setTtsStatus', {
+            isTtsActive
+        })
+    }
+    function restartListening() {
+        console.log('restartListening', new Date().getSeconds(), {
+            isSttActive
+        }, {
+            isTtsActive
+        })
+
+        if (!isTtsActive && !isSttActive) {
+            isSttActive = true;
+            console.log('stt,tts are not active, start listen', ++counter);
+            ;recognition.start();
+        } else {
+            setTimeout(restartListening, 1000)
+        }
+
     }
 }
 
