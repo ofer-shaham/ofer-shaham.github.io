@@ -1,5 +1,15 @@
 let counter = 0
 let idTimout = null
+
+function getRandomVoice(language) {
+    const lowercasedLanguage = language.replace( '_','-')
+    const voices = speechSynthesis.getVoices();
+    const filteredVoices = voices.filter(r=>r.lang == lowercasedLanguage)
+    const length = filteredVoices.length
+    const voice = filteredVoices[Math.floor(Math.random(length) * length)]
+    return voice
+}
+
 function mapLanguageNameToCode(languageName) {
     const languageMap = {
         english: 'en-US',
@@ -153,7 +163,9 @@ function option1() {
 
                 utterance = new SpeechSynthesisUtterance(translationResult);
                 utterance.lang = translateTo;
+                utterance.voice = getRandomVoice(translateTo)
                 recognition.lang = translateFrom;
+
                 console.log('update source and target language', {
                     language: translateTo,
                     translationResult
@@ -163,14 +175,15 @@ function option1() {
                 console.log('update source language', {
                     language: translateFrom
                 });
-
                 recognition.lang = translateFrom;
                 utterance = new SpeechSynthesisUtterance(speechResult);
                 utterance.lang = translateFrom;
+                utterance.voice = getRandomVoice(translateFrom)
             } else {
                 console.log('initial source language')
                 utterance = new SpeechSynthesisUtterance(speechResult);
                 utterance.lang = initialLanguage;
+                utterance.voice = getRandomVoice(initialLanguage)
             }
 
             //listen only whenever tts is off
@@ -279,5 +292,56 @@ function option1() {
     }
     );
 }
+function option2() {
+    return navigator.mediaDevices.getUserMedia({
+        audio: true
+    }).then(function(stream) {
+        return new Promise((resolve,reject)=>{
+            const SpeechRecognition = webkitSpeechRecognition;
 
-option1();
+            const recognition = new SpeechRecognition();
+
+            recognition.interimResults = false;
+            recognition.continuous = false;
+            recognition.maxAlternatives = 1;
+            let initialLanguage = 'en-US';
+
+            recognition.lang = initialLanguage;
+            recognition.onresult = (event)=>{
+                recognition.stop()
+                const speechResult = event.results[event.results.length - 1][0].transcript;
+                console.log('recognition: speechResult', speechResult);
+
+                resolve(speechResult)
+            }
+            recognition.onerror = (ev)=>{
+                console.error(ev)
+                resolve(' recognition.onerror ')
+            }
+            recognition.start()
+        }
+        )
+
+    }).catch((err)=>{
+        console.error(`The following getUserMedia error occurred: ${err}`);
+    }
+    );
+
+}
+
+const x = option2().then((speechResult)=>{
+    const utterance = new SpeechSynthesisUtterance(speechResult);
+    utterance.lang = 'en-US';
+    speechSynthesis.speak(utterance);
+    speechSynthesis.onerror = (ev)=>{
+        console.error(ev)
+    }
+    speechSynthesis.onresult = (ev)=>{
+        console.log(ev)
+    }
+
+}
+).catch(console.error)
+x.then(option1)
+
+
