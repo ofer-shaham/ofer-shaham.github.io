@@ -1,4 +1,5 @@
 let counter = 0
+let idTimout = null
 function mapLanguageNameToCode(languageName) {
     const languageMap = {
         english: 'en-US',
@@ -251,6 +252,9 @@ function option1() {
             })
         }
         async function restartListening() {
+            if (idTimout){
+                clearTimeout(idTimout)
+            }
             console.log('restartListening', new Date().getSeconds(), {
                 isSttActive
             }, {
@@ -261,11 +265,11 @@ function option1() {
                 isSttActive = true;
                 console.log('stt,tts are not active, start listen', ++counter);
                 if (!speechSynthesis.speaking) {
-                    ;recognition.start();
+                    recognition.start();
 
                 }
             } else {
-                setTimeout(restartListening, 1000)
+               idTimout = setTimeout(restartListening, 1000)
             }
 
         }
