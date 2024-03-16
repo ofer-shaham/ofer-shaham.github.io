@@ -2,7 +2,7 @@ let counter = 0
 let idTimout = null
 
 function getRandomVoice(language) {
-    const lowercasedLanguage = language.replace( '_','-')
+    const lowercasedLanguage = language.replace('_', '-')
     const voices = speechSynthesis.getVoices();
     const filteredVoices = voices.filter(r=>r.lang == lowercasedLanguage)
     const length = filteredVoices.length
@@ -265,8 +265,8 @@ function option1() {
             })
         }
         async function restartListening() {
-            if (idTimout){
-                console.log('kill idTimout',idTimout)
+            if (idTimout) {
+                console.log('kill idTimout', idTimout)
                 clearTimeout(idTimout)
             }
             console.log('restartListening', new Date().getSeconds(), {
@@ -283,7 +283,7 @@ function option1() {
 
                 }
             } else {
-               idTimout = setTimeout(restartListening, 1000)
+                idTimout = setTimeout(restartListening, 1000)
             }
 
         }
@@ -308,7 +308,7 @@ function option2() {
 
             recognition.lang = initialLanguage;
             recognition.onresult = (event)=>{
-                recognition.stop()
+                recognition.abort()
                 const speechResult = event.results[event.results.length - 1][0].transcript;
                 console.log('recognition: speechResult', speechResult);
 
@@ -318,7 +318,16 @@ function option2() {
                 console.error(ev)
                 resolve(' recognition.onerror ')
             }
-            recognition.start()
+            const utterance = new SpeechSynthesisUtterance('please speak');
+            utterance.lang = 'en-US';
+
+            utterance.onend = ()=>{
+                recognition.start()
+
+            }
+
+            speechSynthesis.speak(utterance);
+
         }
         )
 
@@ -330,18 +339,20 @@ function option2() {
 }
 
 const x = option2().then((speechResult)=>{
+    console.log('speak:', speechResult)
     const utterance = new SpeechSynthesisUtterance(speechResult);
     utterance.lang = 'en-US';
+    utterance.onerror = (ev)=>{
+        console.log('option2', ev)
+    }
+    utterance.onresult = (ev)=>{
+        console.log('option2', ev)
+    }
+    utterance.onend = (ev)=>{
+        console.log('option2', ev)
+    }
     speechSynthesis.speak(utterance);
-    speechSynthesis.onerror = (ev)=>{
-        console.error(ev)
-    }
-    speechSynthesis.onresult = (ev)=>{
-        console.log(ev)
-    }
 
 }
 ).catch(console.error)
 x.then(option1)
-
-
