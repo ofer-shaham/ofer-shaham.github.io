@@ -119,8 +119,6 @@ function option1() {
         //
         let initialLanguage = 'en-US';
 
-        let utterance = null;
-
         let[translateFrom,translateTo] = ['', ''];
         let isTtsActive = false;
         let isSttActive = false;
@@ -128,6 +126,8 @@ function option1() {
         recognition.lang = initialLanguage;
 
         recognition.onresult = async function(event) {
+            let utterance = null;
+
             console.log({
                 event
             });
@@ -179,7 +179,6 @@ function option1() {
                 console.log('start', {
                     isTtsActive
                 })
-                recognition.stop();
 
             }
             utterance.onmark = function(ev) {
@@ -207,33 +206,34 @@ function option1() {
                 console.log('onend', ev)
             }
 
-    
-
             //speak out
-            speechSynthesis.speak(utterance)
-
+            if (utterance.text) {
+                recognition.abort();
+                speechSynthesis.speak(utterance)
+            }
         }
         // Event handler for errors
-            recognition.onerror = function(event) {
-                console.log("Error occurred: " + event.error);
-                // setSttStatus(false)
-                // restartListening()
-            }
+        recognition.onerror = function(event) {
+            console.log("Error occurred: " + event.error);
+            // setSttStatus(false)
+            // restartListening()
+        }
 
-            // Event handler for when the recognition ends
-            recognition.onend = function() {
-                console.log("Recognition ended");
-                setSttStatus(false)
-                // Start the recognition again if TTS is not active
-                restartListening()
+        // Event handler for when the recognition ends
+        recognition.onend = function() {
+            console.log("Recognition ended");
+            setSttStatus(false)
+            // Start the recognition again if TTS is not active
+            restartListening()
 
-            }
+        }
 
-            recognition.onstart = ()=>{
-                console.log('onstart recognition')
+        recognition.onstart = ()=>{
+            console.log('onstart recognition')
 
-                isSttActive = true;
-            }
+            isSttActive = true;
+        }
+
         recognition.start();
 
         function setSttStatus(value) {
@@ -260,15 +260,19 @@ function option1() {
             if (!isTtsActive && !isSttActive) {
                 isSttActive = true;
                 console.log('stt,tts are not active, start listen', ++counter);
-                ;recognition.start();
+                if (!speechSynthesis.speaking) {
+                    ;recognition.start();
+
+                }
             } else {
                 setTimeout(restartListening, 1000)
             }
 
         }
-    }).catch((err) => {
-      console.error(`The following getUserMedia error occurred: ${err}`);
-    });
+    }).catch((err)=>{
+        console.error(`The following getUserMedia error occurred: ${err}`);
+    }
+    );
 }
 
 option1();
