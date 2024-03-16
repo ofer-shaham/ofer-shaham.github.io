@@ -112,7 +112,7 @@ function option1() {
         //     recognition.grammars = speechRecognitionList;
         // }
         recognition.interimResults = false;
-        recognition.continuous = true;
+        recognition.continuous = false;
         recognition.maxAlternatives = 1;
 
         // let initialLanguage = 'he-IL'
