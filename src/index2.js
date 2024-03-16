@@ -253,6 +253,7 @@ function option1() {
         }
         async function restartListening() {
             if (idTimout){
+                console.log('kill idTimout',idTimout)
                 clearTimeout(idTimout)
             }
             console.log('restartListening', new Date().getSeconds(), {
