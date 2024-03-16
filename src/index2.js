@@ -216,8 +216,8 @@ function option1() {
         // Event handler for errors
             recognition.onerror = function(event) {
                 console.log("Error occurred: " + event.error);
-                setSttStatus(false)
-                restartListening()
+                // setSttStatus(false)
+                // restartListening()
             }
 
             // Event handler for when the recognition ends
