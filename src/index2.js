@@ -395,4 +395,6 @@ function option2() {
 // }
 // ).catch(console.error)
 // x.then(option1)
-option1()
+document.querySelector("body").addEventListener('click',option1)
+
+// option1()
