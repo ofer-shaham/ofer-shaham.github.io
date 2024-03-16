@@ -207,7 +207,13 @@ function option1() {
                 console.log('onend', ev)
             }
 
-            // Event handler for errors
+    
+
+            //speak out
+            speechSynthesis.speak(utterance)
+
+        }
+        // Event handler for errors
             recognition.onerror = function(event) {
                 console.log("Error occurred: " + event.error);
                 setSttStatus(false)
@@ -228,12 +234,6 @@ function option1() {
 
                 isSttActive = true;
             }
-
-            //speak out
-            speechSynthesis.speak(utterance)
-
-        }
-
         recognition.start();
 
         function setSttStatus(value) {
@@ -250,7 +250,7 @@ function option1() {
                 isTtsActive
             })
         }
-        function restartListening() {
+        async function restartListening() {
             console.log('restartListening', new Date().getSeconds(), {
                 isSttActive
             }, {
