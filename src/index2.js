@@ -9,26 +9,22 @@ const logger = {
 }
 
 function showLanguages() {
+    //dynamic mapLanguageNameToCode: build a language map based upon device status, example: { "Deutsch": "de-DE" }
     const createLanguageMap = ()=>{
         const languageMap = {};
         const voices = speechSynthesis.getVoices();
         voices.forEach((voice)=>{
             const languageName = voice.name.split(' ')[1];
-            // Extract the language name from the voice name
             languageMap[languageName] = voice.lang;
-            // Add the language name and code to the language map object
-        }
-        );
+        });
 
         logger.log(languageMap);
-        // Output: { "Deutsch": "de-DE" }
         return languageMap
     }
     const languageMap = createLanguageMap()
     logger.log({
         languageMap
     })
-
 }
 
 function getRandomVoice(language) {
@@ -61,11 +57,7 @@ function mapLanguageNameToCode(languageName) {
 
 async function translateText(source, target, text) {
     const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${source}&tl=${target}&dt=t&q=${encodeURI(text)}`;
-
-    logger.log({
-        url
-    });
-
+    logger.log({url});
     try {
         const response = await fetch(url);
         const data = await response.json();
@@ -77,43 +69,41 @@ async function translateText(source, target, text) {
         return 'error';
     }
 }
-function setFromLanguage(speechResult) {
 
+function setFromLanguage(speechResult) {
     const languageRegex = /(speak|change\slanguage\sto)\s+(\w+)\b/i;
     const match = speechResult.match(languageRegex);
     let translateFrom = null
-
     if (match[2]) {
         translateFrom = mapLanguageNameToCode(match[2]);
     }
-
     return [translateFrom, '']
-
 }
+
 function setTranslationLanguage(userInput) {
     const pattern = /translate\s+from\s+(\w+)\s+to\s+(\w+)/i;
     let translateFrom = null
     let translateTo = null
     const matches = userInput.match(pattern);
-
     if (matches.length === 3) {
         translateFrom = mapLanguageNameToCode(matches[1]);
         translateTo = mapLanguageNameToCode(matches[2]);
-
     }
-
     return [translateFrom, translateTo];
 }
 
+//trigger an action based upon available commands. 
+//available commands allows to set source/target language
+//available options: repeat mode/translation mode
+//repeat mode: 
+//say "speak arabic" - to setup a source language "arabic"
+//say "translate from hebrew to english" - to setup source language as hebrew and target language as english
+//say "show commands" - will output available commands to the console
 function analyzeText(speechResult) {
     let translateFrom = null;
     let translateTo = null;
-
     logger.log("analyzeText   " + speechResult);
-
-
     const isIncluding = speechResult.toLowerCase().includes.bind(speechResult);
-
     if (isIncluding("show languages")) {
         showLanguages()
     } else if (isIncluding("show commands")) {
@@ -123,7 +113,6 @@ function analyzeText(speechResult) {
     } else if (isIncluding("translate from")) {
         {
             [translateFrom,translateTo] = setTranslationLanguage(speechResult);
-
         }
     } else if (((isIncluding("speak") && speechResult.split(' ').length === 2) || isIncluding("change language to"))) {
         [translateFrom,translateTo] = setFromLanguage(speechResult);
@@ -163,32 +152,24 @@ function option1() {
         //
         let initialLanguage = 'en-US';
 
-        let[translateFrom,translateTo] = ['', ''];
         let isTtsActive = false;
         let isSttActive = false;
 
         recognition.lang = initialLanguage;
 
         recognition.onresult = async function(event) {
+            let[translateFrom,translateTo] = [null, null];
             let utterance = null;
-
-            logger.log({
-                event
-            });
-
             const speechResult = event.results[event.results.length - 1][0].transcript;
             logger.log('recognition: speechResult', speechResult);
 
             //extract command from speech - we may want to translate or just to change source language
             const [newTranslateFrom,newTranslateTo] = analyzeText(speechResult);
-
             //update src and target if exists
             if (newTranslateTo != null && newTranslateFrom != null) {
                 translateTo = newTranslateTo;
-
                 translateFrom = newTranslateFrom;
             }
-
             if (translateTo) {
                 //speak out the translation
                 const translationResult = await translateText(translateFrom, translateTo, speechResult);
@@ -218,14 +199,12 @@ function option1() {
                 utterance.voice = getRandomVoice(initialLanguage)
             }
 
-            //listen only whenever tts is off
+            //listen always: whenever tts is off
             utterance.onstart = function(ev) {
-
                 isTtsActive = true;
                 logger.log('start', {
                     isTtsActive
                 })
-
             }
             utterance.onmark = function(ev) {
                 logger.log('onmark', ev)
@@ -287,6 +266,7 @@ function option1() {
             setSttStatus(true)
         }
 
+        //will occure once per runtime
         recognition.start();
 
         function setSttStatus(value) {
@@ -360,7 +340,6 @@ function option2() {
 
             utterance.onend = ()=>{
                 recognition.start()
-
             }
 
             speechSynthesis.speak(utterance);
