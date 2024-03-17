@@ -1,5 +1,12 @@
+const MODE_DEBUG = true
 let counter = 0
 let idTimout = null
+const logger = {
+    info: console.info,
+    log: MODE_DEBUG ? ()=>{}
+    : console.log,
+    error: console.error
+}
 
 function showLanguages() {
     const createLanguageMap = ()=>{
@@ -13,20 +20,17 @@ function showLanguages() {
         }
         );
 
-        console.log(languageMap);
+        logger.log(languageMap);
         // Output: { "Deutsch": "de-DE" }
         return languageMap
     }
     const languageMap = createLanguageMap()
-    console.log({
+    logger.log({
         languageMap
     })
 
 }
 
-
-
- 
 function getRandomVoice(language) {
     const lowercasedLanguage = language.replace('_', '-')
     const voices = speechSynthesis.getVoices();
@@ -58,7 +62,7 @@ function mapLanguageNameToCode(languageName) {
 async function translateText(source, target, text) {
     const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${source}&tl=${target}&dt=t&q=${encodeURI(text)}`;
 
-    console.log({
+    logger.log({
         url
     });
 
@@ -66,14 +70,27 @@ async function translateText(source, target, text) {
         const response = await fetch(url);
         const data = await response.json();
         const translatedText = data[0][0][0];
-        console.log(`Translated text: ${translatedText}`);
+        logger.log(`Translated text: ${translatedText}`);
         return translatedText;
     } catch (error) {
         console.error('Error translating text:', error);
         return 'error';
     }
 }
+function setFromLanguage(speechResult) {
 
+    const languageRegex = /(speak|change\slanguage\sto)\s+(\w+)\b/i;
+    const match = speechResult.match(languageRegex);
+    let languageName
+    if (match[2]) {
+        languageName = match[2];
+    }
+
+    const translateFrom = mapLanguageNameToCode(languageName);
+
+    return [translateFrom, '']
+
+}
 function setTranslationLanguage(userInput) {
     const pattern = /translate\s+from\s+(\w+)\s+to\s+(\w+)/i;
     let translateFrom = '';
@@ -95,42 +112,45 @@ function analyzeText(speechResult) {
     let src = '';
     let trg = '';
 
-    console.log("analyzeText   " + speechResult);
+    logger.log("analyzeText   " + speechResult);
 
-    if (speechResult.toLowerCase().includes("speak english")) {
-        console.log('back to english')
-        translateFrom = 'en-US'
-        translateTo=''
-    } 
-   else if (speechResult.toLowerCase().includes("show languages")) {
-            showLanguages()
+    // if (speechResult.toLowerCase().includes("speak english")) {
+    //     logger.log('back to english')
+    //     translateFrom = 'en-US'
+    //     translateTo=''
+    // } 
+    const isIncluding = speechResult.toLowerCase().includes.bind(speechResult);
+
+    if (isIncluding("show languages")) {
+        showLanguages()
+    } else if (isIncluding("show commands")) {
+        logger.log("translate from X to Y")
+        logger.log("change language to X")
+        logger.log('speak X')
+    } else if (isIncluding("translate from")) {
+        {
+            [translateFrom,translateTo] = setTranslationLanguage(speechResult);
+            if (!translateTo) {
+                console.error('invalid target language:', speechResult)
+            } else {
+                trg = translateTo
+            }
+            if (!translateFrom) {
+                console.error('invalid source language:', speechResult)
+            } else {
+                src = translateFrom
+            }
         }
-else if (speechResult.toLowerCase().includes("show commands")) {
-        console.log("translate from X to Y")
-        console.log("change language to X")
-        console.log('speak english')
-    } else if (speechResult.toLowerCase().includes("translate from")) {
-        [translateFrom,translateTo] = setTranslationLanguage(speechResult);
-    } else if (speechResult.toLowerCase().includes("change language to")) {
-        translateFrom = speechResult.toLowerCase().replace("change language to", "").trim();
-        console.log("Language Updated: " + translateFrom);
+    } else if (((isIncluding("speak") && speechResult.split(' ').length === 2) || isIncluding("change language to"))) {
+        [translateFrom,translateTo] = setFromLanguage(speechResult);
+        if (!translateFrom) {
+            console.error('invalid source language:', speechResult)
+        } else {
+            src = translateFrom
+        }
     }
 
-    console.log([{
-        translateFrom
-    }, {
-        translateTo
-    }]);
-
-    try {
-        if (translateFrom)
-            src = mapLanguageNameToCode(translateFrom);
-        if (translateTo)
-            trg = mapLanguageNameToCode(translateTo);
-    } catch (e) {
-        console.error(e.message);
-    }
-    console.log([src, trg])
+    console.info([src, trg])
     return [src, trg];
 }
 
@@ -139,7 +159,7 @@ function option1() {
         audio: true
     }).then(function(stream) {
 
-        console.log('option1', ++counter)
+        logger.log('option1', ++counter)
         const SpeechRecognition = webkitSpeechRecognition;
         const SpeechGrammarList = window.webkitSpeechGrammarList;
         const SpeechRecognitionEvent = webkitSpeechRecognitionEvent;
@@ -170,17 +190,17 @@ function option1() {
         recognition.onresult = async function(event) {
             let utterance = null;
 
-            console.log({
+            logger.log({
                 event
             });
 
             const speechResult = event.results[event.results.length - 1][0].transcript;
-            console.log('recognition: speechResult', speechResult);
+            logger.log('recognition: speechResult', speechResult);
 
             //extract command from speech - we may want to translate or just to change source language
             const [newTranslateFrom,newTranslateTo] = analyzeText(speechResult);
 
-            //prefer translation if exists
+            //update src and target if exists
             if (newTranslateTo) {
                 translateTo = newTranslateTo;
             }
@@ -197,13 +217,13 @@ function option1() {
                 utterance.voice = getRandomVoice(translateTo)
                 recognition.lang = translateFrom;
 
-                console.log('update source and target language', {
+                logger.log('update source and target language', {
                     language: translateTo,
                     translationResult
                 });
             } else if (translateFrom) {
                 //change spoken language
-                console.log('update source language', {
+                logger.log('update source language', {
                     language: translateFrom
                 });
                 recognition.lang = translateFrom;
@@ -211,7 +231,7 @@ function option1() {
                 utterance.lang = translateFrom;
                 utterance.voice = getRandomVoice(translateFrom)
             } else {
-                console.log('initial source language')
+                logger.log('initial source language')
                 utterance = new SpeechSynthesisUtterance(speechResult);
                 utterance.lang = initialLanguage;
                 utterance.voice = getRandomVoice(initialLanguage)
@@ -221,55 +241,59 @@ function option1() {
             utterance.onstart = function(ev) {
 
                 isTtsActive = true;
-                console.log('start', {
+                logger.log('start', {
                     isTtsActive
                 })
 
             }
             utterance.onmark = function(ev) {
-                console.log('onmark', ev)
+                logger.log('onmark', ev)
             }
             ;
             utterance.onboundary = function(ev) {
-                console.log('onboundary', ev)
+                logger.info('onboundary', ev)
             }
             ;
             utterance.onresult = function(ev) {
-                console.log('onresult', ev)
+                logger.log('onresult', ev)
             }
 
             utterance.onerror = function(ev) {
-                console.log('onerror', ev)
+                logger.log('onerror', ev)
             }
             utterance.onspeechend = function(ev) {
                 setTtsStatus(false)
 
-                console.log('onspeechend', ev)
+                logger.log('onspeechend', ev)
             }
             utterance.onend = function(ev) {
                 setTtsStatus(false)
-                console.log('onend', ev)
-restartListening()
+                logger.log('onend', ev)
+                restartListening()
             }
 
             //speak out
             if (utterance.text) {
+                logger.info("RESULT", utterance.text)
                 // recognition.stop();
-                speechSynthesis.speak(utterance)
+                //    speechSynthesis.speak(utterance)
             }
         }
-        
-        
+
         // Event handler for errors
         recognition.onerror = function(event) {
-            console.log("Error occurred: " + event.error);
-            setSttStatus(false)
+            logger.log("Error occurred: " + event.error);
+            //   setSttStatus(false)
             restartListening()
         }
 
         // Event handler for when the recognition ends
-        recognition.onspeechend = recognition.onend = function() {
-            console.log("Recognition ended");
+        recognition.onspeechend = function() {
+            logger.log("Recognition onspeechend");
+
+        }
+        recognition.onend = function() {
+            logger.log("Recognition ended");
             setSttStatus(false)
             // Start the recognition again if TTS is not active
             restartListening()
@@ -277,7 +301,7 @@ restartListening()
         }
 
         recognition.onstart = ()=>{
-            console.log('onstart recognition')
+            logger.log('onstart recognition')
 
             setSttStatus(true)
         }
@@ -287,33 +311,32 @@ restartListening()
         function setSttStatus(value) {
             // ;utterance = null;
             isSttActive = value;
-            console.log('setSttStatus', {
+            logger.log('setSttStatus', {
                 isTtsActive
             })
         }
         function setTtsStatus(value) {
             // ;utterance = null;
             isTtsActive = value;
-            console.log('setTtsStatus', {
+            logger.log('setTtsStatus', {
                 isTtsActive
             })
         }
-        async function restartListening() {
+        function restartListening() {
             if (idTimout) {
-                console.log('kill idTimout', idTimout)
+                logger.log('kill idTimout', idTimout)
                 clearTimeout(idTimout)
             }
-            console.log('restartListening', new Date().getSeconds(), {
+            logger.log('restartListening', new Date().getSeconds(), {
                 isSttActive
             }, {
                 isTtsActive
             })
 
             if (!isTtsActive && !isSttActive) {
-                console.log('stt,tts are not active, start listen', ++counter);
+                logger.log('stt,tts are not active, start listen', ++counter);
                 if (!speechSynthesis.speaking) {
                     recognition.start();
-
                 }
             } else {
                 idTimout = setTimeout(restartListening, 1000)
@@ -343,7 +366,7 @@ function option2() {
             recognition.onresult = (event)=>{
                 // recognition.abort()
                 const speechResult = event.results[event.results.length - 1][0].transcript;
-                console.log('recognition: speechResult', speechResult);
+                logger.info('recognition: speechResult', speechResult);
 
                 resolve(speechResult)
             }
@@ -374,27 +397,30 @@ function option2() {
 // const x = option2().then((speechResult)=>{
 //     return new Promise((resolve, reject)=>{
 
-//         console.log('speak:', speechResult)
+//         logger.log('speak:', speechResult)
 //     const utterance = new SpeechSynthesisUtterance(speechResult);
 //     utterance.lang = 'en-US';
 //     utterance.onerror = (ev)=>{
-//         console.log('option2', ev)
+//         logger.log('option2', ev)
 //         reject(av)
 //     }
 //     utterance.onresult = (ev)=>{
-//         console.log('option2', ev)
+//         logger.log('option2', ev)
 //     }
 //     utterance.onend = (ev)=>{
-//         console.log('option2', ev)
+//         logger.log('option2', ev)
 //         resolve(ev)
 //     }
 //     speechSynthesis.speak(utterance);
 //     })
-    
 
 // }
 // ).catch(console.error)
 // x.then(option1)
-document.querySelector("body").addEventListener('click',option1)
-
-// option1()
+// document.querySelector("body").addEventListener('click',option1)
+try {
+    console.info('start option1')
+    option1()
+} catch (e) {
+    console.error(e.message)
+}
