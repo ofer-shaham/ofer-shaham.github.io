@@ -81,44 +81,37 @@ function setFromLanguage(speechResult) {
 
     const languageRegex = /(speak|change\slanguage\sto)\s+(\w+)\b/i;
     const match = speechResult.match(languageRegex);
-    let languageName
-    if (match[2]) {
-        languageName = match[2];
-    }
+    let translateFrom = null
 
-    const translateFrom = mapLanguageNameToCode(languageName);
+    if (match[2]) {
+        translateFrom = mapLanguageNameToCode(match[2]);
+    }
 
     return [translateFrom, '']
 
 }
 function setTranslationLanguage(userInput) {
     const pattern = /translate\s+from\s+(\w+)\s+to\s+(\w+)/i;
-    let translateFrom = '';
-    let translateTo = '';
+    let translateFrom = null
+    let translateTo = null
     const matches = userInput.match(pattern);
 
-    if (matches) {
-        translateFrom = matches[1];
-        translateTo = matches[2];
+    if (matches.length === 3) {
+        translateFrom = mapLanguageNameToCode(matches[1]);
+        translateTo = mapLanguageNameToCode(matches[2]);
+
     }
 
     return [translateFrom, translateTo];
 }
 
 function analyzeText(speechResult) {
-    let translateFrom = '';
-    let translateTo = '';
-
-    let src = '';
-    let trg = '';
+    let translateFrom = null;
+    let translateTo = null;
 
     logger.log("analyzeText   " + speechResult);
 
-    // if (speechResult.toLowerCase().includes("speak english")) {
-    //     logger.log('back to english')
-    //     translateFrom = 'en-US'
-    //     translateTo=''
-    // } 
+
     const isIncluding = speechResult.toLowerCase().includes.bind(speechResult);
 
     if (isIncluding("show languages")) {
@@ -130,28 +123,17 @@ function analyzeText(speechResult) {
     } else if (isIncluding("translate from")) {
         {
             [translateFrom,translateTo] = setTranslationLanguage(speechResult);
-            if (!translateTo) {
-                console.error('invalid target language:', speechResult)
-            } else {
-                trg = translateTo
-            }
-            if (!translateFrom) {
-                console.error('invalid source language:', speechResult)
-            } else {
-                src = translateFrom
-            }
+
         }
     } else if (((isIncluding("speak") && speechResult.split(' ').length === 2) || isIncluding("change language to"))) {
         [translateFrom,translateTo] = setFromLanguage(speechResult);
-        if (!translateFrom) {
-            console.error('invalid source language:', speechResult)
-        } else {
-            src = translateFrom
+        if (translateTo == null || translateFrom == null) {
+            console.error('invalid   language set:', [translateFrom, translateTo])
         }
     }
 
-    console.info([src, trg])
-    return [src, trg];
+    console.info([translateFrom, translateTo])
+    return [translateFrom, translateTo];
 }
 
 function option1() {
@@ -201,10 +183,9 @@ function option1() {
             const [newTranslateFrom,newTranslateTo] = analyzeText(speechResult);
 
             //update src and target if exists
-            if (newTranslateTo) {
+            if (newTranslateTo != null && newTranslateFrom != null) {
                 translateTo = newTranslateTo;
-            }
-            if (newTranslateFrom) {
+
                 translateFrom = newTranslateFrom;
             }
 
@@ -276,7 +257,7 @@ function option1() {
             if (utterance.text) {
                 logger.info("RESULT", utterance.text)
                 // recognition.stop();
-                //    speechSynthesis.speak(utterance)
+                speechSynthesis.speak(utterance)
             }
         }
 
