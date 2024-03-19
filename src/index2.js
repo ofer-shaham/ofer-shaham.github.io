@@ -156,9 +156,8 @@ function option1() {
         let isSttActive = false;
 
         recognition.lang = initialLanguage;
-
+        let[translateFrom,translateTo] = [null, null];
         recognition.onresult = async function(event) {
-            let[translateFrom,translateTo] = [null, null];
             let utterance = null;
             const speechResult = event.results[event.results.length - 1][0].transcript;
             logger.log('recognition: speechResult', speechResult);
