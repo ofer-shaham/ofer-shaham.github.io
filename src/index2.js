@@ -234,7 +234,7 @@ function option1() {
             //speak out
             if (utterance.text) {
                 logger.info("RESULT", utterance.text)
-                // recognition.stop();
+                recognition.abort();
                 speechSynthesis.speak(utterance)
             }
         }
